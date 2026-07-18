@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# Hook error log
+vault_capture.error.log
+
+# A vault scaffolded into the repo dir by mistake — your vault lives OUTSIDE the repo
+/second-brain/
+/vault/
+
+# OS
+.DS_Store
+Thumbs.db

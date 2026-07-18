@@ -1,0 +1,12 @@
+{
+  "_comment": "The installer writes these into ~/.claude/settings.json → env. Shown here for reference; you normally set VAULT_PATH when running install.sh, not by editing this file.",
+  "env": {
+    "VAULT_PATH": "~/second-brain",
+    "VAULT_WORKSPACE": "~"
+  },
+  "_notes": {
+    "VAULT_PATH": "Absolute path to the vault folder. This is what syncs across devices.",
+    "VAULT_WORKSPACE": "The root you work under. Sessions anywhere below it are auto-captured; sessions outside it are ignored. Defaults to the vault's parent folder.",
+    "EXCLUDE_DIRS": "Optional. Edit hooks/vault_capture.py to sandbox folders (relative to VAULT_WORKSPACE) whose sessions should never be captured, e.g. [\"secrets\", \"client-x\"]. Empty by default — capture everything."
+  }
+}
