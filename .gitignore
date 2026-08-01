@@ -12,3 +12,6 @@ vault_capture.error.log
 # OS
 .DS_Store
 Thumbs.db
+
+# local vault pointer — personal, never publish
+CLAUDE.md

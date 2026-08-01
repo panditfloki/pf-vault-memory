@@ -29,6 +29,8 @@ relevant page; reading on demand is cheap and precise.
 
 - **Capture** (cheap, noisy, automatic): the SessionEnd hook writes every session to
   `raw/inbox/sessions/`. For a curated mid-session flush, use the **`/capture`** skill.
+- **Wire a project**: the **`/newproject`** skill adds a project folder to the vault — a
+  working-state file + a one-line pointer so that project's context auto-loads inside its folder.
 - **Ingest** (curated, human-gated): the **`/ingest`** skill promotes `raw/inbox/` → `wiki/`,
   cross-references, and flags contradictions. **Never run it unprompted** — the SessionStart
   nudge reports the queue; the user decides when to promote.

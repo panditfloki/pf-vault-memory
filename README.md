@@ -85,6 +85,7 @@ per-machine — that split is deliberate.
 - Just work. Sessions auto-capture on exit.
 - `/capture` — save a decision or analysis mid-session, in your words.
 - `/ingest` — promote the inbox into the wiki (you run this; it's never automatic).
+- `/newproject` — wire a new project folder into the vault: a working-state file + a one-line pointer, so that project's context loads automatically inside its folder.
 - Ask normally — "what did we decide about X?" — and Claude reads the map, then the page.
 
 ## Layout
@@ -94,7 +95,7 @@ pf-vault-memory/
 ├── SKILL.md              # how Claude operates the system
 ├── install.sh / .ps1     # per-device installer (idempotent)
 ├── hooks/                # vault_capture.py (SessionEnd) · vault_queue_nudge.py (SessionStart)
-├── skills/               # capture/ · ingest/
+├── skills/               # capture/ · ingest/ · newproject/
 └── vault-template/       # CLAUDE.md (schema) · KERNEL.md (identity) · wiki/ scaffold
 ```
 
