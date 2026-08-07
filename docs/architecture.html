@@ -1,121 +1,108 @@
+<meta charset="utf-8">
 <title>pf-vault-memory — architecture</title>
 <style>
+  /* Light is the default cascade. Dark is applied via [data-theme="dark"], stamped by the
+     script at the bottom from prefers-color-scheme (or ?theme=, or the viewer's toggle). */
   :root {
-    --ground:#E7EAEC; --panel:#F3F5F6; --panel-2:#FBFCFC; --line:#CDD4D8;
-    --ink:#151B20; --muted:#5A666E; --faint:#87949C;
-    --brass:#8C601F; --brass-soft:#B98A3C; --teal:#1C6763; --teal-soft:#2E8983;
-    --brass-wash:rgba(140,96,31,.09); --teal-wash:rgba(28,103,99,.09);
-    --shadow:0 1px 2px rgba(20,28,33,.06), 0 8px 24px rgba(20,28,33,.05);
+    --ground:#E9ECEE; --panel:#F7F8F9; --panel-2:#FDFDFE; --line:#C6CED3;
+    --ink:#11161A; --muted:#49545B; --soft:#5C686F;
+    --brass:#6B4711; --brass-line:#A97C33; --teal:#125450; --teal-line:#2C8079;
+    --brass-wash:rgba(107,71,17,.07); --teal-wash:rgba(18,84,80,.07);
     --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
     --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --ground:#0E1317; --panel:#161D23; --panel-2:#1D272E; --line:#2A353D;
-      --ink:#D9E0E5; --muted:#8A97A0; --faint:#5E6C75;
-      --brass:#D6A24E; --brass-soft:#E0B368; --teal:#4FB0A6; --teal-soft:#67C1B7;
-      --brass-wash:rgba(214,162,78,.11); --teal-wash:rgba(79,176,166,.11);
-      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.28);
-    }
-  }
-  :root[data-theme="light"]{
-    --ground:#E7EAEC; --panel:#F3F5F6; --panel-2:#FBFCFC; --line:#CDD4D8;
-    --ink:#151B20; --muted:#5A666E; --faint:#87949C;
-    --brass:#8C601F; --brass-soft:#B98A3C; --teal:#1C6763; --teal-soft:#2E8983;
-    --brass-wash:rgba(140,96,31,.09); --teal-wash:rgba(28,103,99,.09);
-    --shadow:0 1px 2px rgba(20,28,33,.06), 0 8px 24px rgba(20,28,33,.05);
-  }
   :root[data-theme="dark"]{
-    --ground:#0E1317; --panel:#161D23; --panel-2:#1D272E; --line:#2A353D;
-    --ink:#D9E0E5; --muted:#8A97A0; --faint:#5E6C75;
-    --brass:#D6A24E; --brass-soft:#E0B368; --teal:#4FB0A6; --teal-soft:#67C1B7;
-    --brass-wash:rgba(214,162,78,.11); --teal-wash:rgba(79,176,166,.11);
-    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.28);
+    --ground:#0E1317; --panel:#171E24; --panel-2:#1F2932; --line:#33404A;
+    --ink:#E6EBEF; --muted:#A9B5BD; --soft:#93A0A9;
+    --brass:#E9C081; --brass-line:#C99A4E; --teal:#74C9BF; --teal-line:#4FA79C;
+    --brass-wash:rgba(233,192,129,.10); --teal-wash:rgba(116,201,191,.10);
   }
 
   *{box-sizing:border-box}
   body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
        line-height:1.55;-webkit-font-smoothing:antialiased;
-       background-image:radial-gradient(circle at 15% 0%,var(--brass-wash),transparent 45%),
-                        radial-gradient(circle at 90% 100%,var(--teal-wash),transparent 45%);}
-  .wrap{max-width:1080px;margin:0 auto;padding:clamp(28px,5vw,64px) clamp(18px,4vw,44px)}
+       background-image:radial-gradient(circle at 12% -5%,var(--brass-wash),transparent 42%),
+                        radial-gradient(circle at 92% 105%,var(--teal-wash),transparent 42%);}
+  .wrap{max-width:1080px;margin:0 auto;padding:clamp(30px,5vw,64px) clamp(18px,4vw,44px)}
 
-  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
-           color:var(--muted);display:flex;align-items:center;gap:10px}
-  .eyebrow::before{content:"";width:26px;height:1px;background:var(--brass)}
-  h1{font-family:var(--mono);font-weight:700;letter-spacing:-.02em;text-transform:uppercase;
-     font-size:clamp(30px,6vw,52px);margin:.35em 0 .1em;text-wrap:balance;line-height:1.02}
+  h1{font-family:var(--mono);font-weight:700;letter-spacing:-.02em;
+     font-size:clamp(30px,6vw,52px);margin:0 0 .12em;text-wrap:balance;line-height:1.02;
+     color:var(--ink)}
   h1 .dot{color:var(--brass)}
-  .thesis{font-size:clamp(16px,2.4vw,20px);color:var(--ink);max-width:60ch;margin:.2em 0 0;text-wrap:balance}
+  .thesis{font-size:clamp(16px,2.4vw,20px);color:var(--ink);max-width:62ch;margin:.25em 0 0;text-wrap:balance}
   .thesis b{color:var(--brass)}
-  .sub{color:var(--muted);font-size:15px;margin-top:.5em;max-width:64ch}
+  .sub{color:var(--muted);font-size:15px;margin-top:.55em;max-width:66ch}
+  .kicker{font-family:var(--mono);font-size:13px;color:var(--muted);margin:0 0 1.1em;
+          display:flex;align-items:center;gap:9px}
+  .kicker::before{content:"";width:22px;height:2px;background:var(--brass-line);border-radius:2px}
 
-  .diagram{margin:clamp(30px,5vw,52px) 0 0;overflow-x:auto;padding-bottom:6px}
-  .board{min-width:660px;display:flex;flex-direction:column;gap:16px}
-  .lane{background:var(--panel);border:1px solid var(--line);border-radius:14px;
-        box-shadow:var(--shadow);padding:16px 18px}
-  .lane-head{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
-             display:flex;align-items:center;gap:8px;margin-bottom:14px;color:var(--muted)}
-  .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;padding:2px 8px;border-radius:999px;
-       text-transform:uppercase;border:1px solid transparent}
-  .tag.in{color:var(--brass);border-color:var(--brass);background:var(--brass-wash)}
-  .tag.out{color:var(--teal);border-color:var(--teal);background:var(--teal-wash)}
+  .diagram{margin:clamp(30px,5vw,50px) 0 0;overflow-x:auto;padding-bottom:6px}
+  .board{min-width:680px;display:flex;flex-direction:column;gap:16px}
+  .lane{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .lane-head{font-family:var(--mono);font-size:13px;display:flex;align-items:center;gap:9px;
+             margin-bottom:14px;color:var(--muted)}
+  .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;padding:3px 9px;border-radius:999px;
+       border:1px solid transparent}
+  .tag.in{color:var(--brass);border-color:var(--brass-line);background:var(--brass-wash)}
+  .tag.out{color:var(--teal);border-color:var(--teal-line);background:var(--teal-wash)}
 
   .flow{display:flex;align-items:stretch;gap:0}
-  .node{flex:1;min-width:118px;background:var(--panel-2);border:1px solid var(--line);
-         border-radius:11px;padding:13px 14px;display:flex;flex-direction:column;gap:3px}
-  .node .k{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:-.01em}
-  .node .d{font-size:12.5px;color:var(--muted);line-height:1.4}
-  .node.raw{border-left:3px solid var(--brass)}
-  .node.wiki{border-left:3px solid var(--teal)}
+  .node{flex:1;min-width:124px;background:var(--panel-2);border:1px solid var(--line);
+        border-radius:11px;padding:13px 14px;display:flex;flex-direction:column;gap:4px}
+  .node .k{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:-.01em;
+           display:flex;align-items:center;gap:7px}
+  .node .d{font-size:12.5px;color:var(--muted);line-height:1.42}
+  /* marker dot instead of a thick side rail */
+  .node .k::before{content:"";width:7px;height:7px;border-radius:2px;flex:none;
+                   background:var(--line)}
+  .node.raw .k::before{background:var(--brass-line)}
+  .node.wiki .k::before{background:var(--teal-line)}
 
-  .arrow{flex:0 0 96px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-          gap:5px;padding:0 4px;position:relative}
-  .arrow .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink);
-              text-align:center;line-height:1.25}
-  .arrow .lbl .who{color:var(--faint)}
-  .track{width:100%;height:2px;background:linear-gradient(90deg,var(--line),var(--line));
-          border-radius:2px;position:relative;overflow:hidden}
+  .arrow{flex:0 0 104px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+          gap:6px;padding:0 5px}
+  .arrow .lbl{font-family:var(--mono);font-size:11.5px;color:var(--ink);text-align:center;line-height:1.3}
+  .arrow .lbl .who{display:block;color:var(--soft);font-size:11px;margin-top:2px}
+  .track{width:100%;height:2px;background:var(--line);border-radius:2px;position:relative;overflow:hidden}
   .track::after{content:"";position:absolute;inset:0;width:40%;border-radius:2px;
                 background:linear-gradient(90deg,transparent,var(--accent),transparent);
                 animation:flow 2.6s linear infinite}
-  .arrow.b .track::after{--accent:var(--brass-soft)} .arrow.t .track::after{--accent:var(--teal-soft)}
-  .arrow .head{font-family:var(--mono);color:var(--faint);font-size:13px;line-height:1;margin-top:-2px}
+  .arrow.b .track::after{--accent:var(--brass-line)} .arrow.t .track::after{--accent:var(--teal-line)}
+  .arrow .head{font-family:var(--mono);color:var(--soft);font-size:13px;line-height:1;margin-top:-3px}
   @keyframes flow{from{transform:translateX(-120%)}to{transform:translateX(320%)}}
   @media (prefers-reduced-motion:reduce){.track::after{animation:none;left:30%}}
 
-  .layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;
-          margin-top:clamp(30px,5vw,48px)}
+  .layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;
+          margin-top:clamp(30px,5vw,46px)}
   .layer{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px}
   .layer .n{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink)}
-  .layer .n span{color:var(--faint);font-weight:400}
+  .layer .n span{color:var(--soft);font-weight:400}
   .layer p{margin:6px 0 0;font-size:12.5px;color:var(--muted);line-height:1.45}
 
-  .section-label{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
-                 color:var(--muted);margin:clamp(34px,5vw,52px) 0 14px;display:flex;align-items:center;gap:10px}
+  .section-label{font-family:var(--mono);font-size:13px;color:var(--muted);
+                 margin:clamp(32px,5vw,48px) 0 14px;display:flex;align-items:center;gap:10px}
   .section-label::after{content:"";flex:1;height:1px;background:var(--line)}
 
-  .hard{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .hard{display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:12px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
-  .card h3{font-family:var(--mono);font-size:13px;margin:0 0 5px;letter-spacing:-.01em;color:var(--brass)}
+  .card h3{font-family:var(--mono);font-size:13px;margin:0 0 6px;letter-spacing:-.01em;color:var(--brass)}
   .card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.5}
   .card code{font-family:var(--mono);font-size:11.5px;background:var(--panel-2);color:var(--ink);
              padding:1px 5px;border-radius:5px;border:1px solid var(--line)}
 
-  footer{margin-top:clamp(34px,5vw,52px);border-top:1px solid var(--line);padding-top:20px;
+  footer{margin-top:clamp(32px,5vw,48px);border-top:1px solid var(--line);padding-top:20px;
          display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between}
   .cmd{font-family:var(--mono);font-size:13px;background:var(--panel-2);border:1px solid var(--line);
        border-radius:9px;padding:11px 14px;color:var(--ink);overflow-x:auto;white-space:nowrap}
-  .cmd .p{color:var(--teal)} .cmd .c{color:var(--faint)}
-  .credit{font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:.02em}
+  .cmd .p{color:var(--teal)} .cmd .c{color:var(--soft)}
+  .credit{font-family:var(--mono);font-size:12px;color:var(--soft);letter-spacing:.02em}
   .credit b{color:var(--brass);font-weight:600}
 </style>
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Claude&nbsp;Code · second&nbsp;brain</div>
     <h1>pf&#8209;vault<span class="dot">&#8209;</span>memory</h1>
-    <p class="thesis">A persistent, cross-device memory for Claude Code you <b>query — not a context blob you preload.</b></p>
+    <p class="kicker">A second brain for Claude Code</p>
+    <p class="thesis">Persistent, cross-device memory you <b>query — not a context blob you preload.</b></p>
     <p class="sub">An immutable raw layer and an LLM-curated wiki layer. Sync the folder across your machines; mount the map, not the whole brain, into every session.</p>
   </header>
 
@@ -123,23 +110,23 @@
     <div class="board">
 
       <div class="lane">
-        <div class="lane-head"><span class="tag in">Flush → in</span> how knowledge gets in</div>
+        <div class="lane-head"><span class="tag in">Flush &rarr; in</span> How knowledge gets in</div>
         <div class="flow">
           <div class="node"><span class="k">session</span><span class="d">you just work in Claude Code</span></div>
-          <div class="arrow b"><span class="lbl">capture<br><span class="who">SessionEnd · auto</span></span><span class="track"></span><span class="head">▶</span></div>
+          <div class="arrow b"><span class="lbl">capture<span class="who">SessionEnd · auto</span></span><span class="track"></span><span class="head">&#9654;</span></div>
           <div class="node raw"><span class="k">raw/ inbox</span><span class="d">immutable transcript · never deleted</span></div>
-          <div class="arrow b"><span class="lbl">/ingest<br><span class="who">you · human-gated</span></span><span class="track"></span><span class="head">▶</span></div>
+          <div class="arrow b"><span class="lbl">/ingest<span class="who">you · human-gated</span></span><span class="track"></span><span class="head">&#9654;</span></div>
           <div class="node wiki"><span class="k">wiki/</span><span class="d">curated, cross-linked pages</span></div>
         </div>
       </div>
 
       <div class="lane">
-        <div class="lane-head"><span class="tag out">Recall → out</span> how it comes back</div>
+        <div class="lane-head"><span class="tag out">Recall &rarr; out</span> How it comes back</div>
         <div class="flow">
           <div class="node wiki"><span class="k">KERNEL.md</span><span class="d">imports the map (index.md)</span></div>
-          <div class="arrow t"><span class="lbl">mount map<br><span class="who">~2.5k tokens</span></span><span class="track"></span><span class="head">▶</span></div>
+          <div class="arrow t"><span class="lbl">mount map<span class="who">~2.5k tokens</span></span><span class="track"></span><span class="head">&#9654;</span></div>
           <div class="node"><span class="k">read the page</span><span class="d">on demand · only what’s needed</span></div>
-          <div class="arrow t"><span class="lbl">answer<br><span class="who">with citations</span></span><span class="track"></span><span class="head">▶</span></div>
+          <div class="arrow t"><span class="lbl">answer<span class="who">with citations</span></span><span class="track"></span><span class="head">&#9654;</span></div>
           <div class="node"><span class="k">reply</span><span class="d">grounded, sourced, no drift</span></div>
         </div>
       </div>
@@ -170,12 +157,21 @@
 </div>
 
 <script>
-  // keep the viewer's theme toggle authoritative in both directions
+  // Theme resolution, in priority order: ?theme= → an already-stamped data-theme
+  // (the viewer's toggle) → the OS preference. Kept in JS so the dark palette lives
+  // behind [data-theme], which keeps every colour pair statically checkable.
   (function () {
     var root = document.documentElement;
-    try {
-      var t = new URLSearchParams(location.search).get('theme');
-      if (t === 'dark' || t === 'light') root.setAttribute('data-theme', t);
-    } catch (e) {}
+    var forced = null;
+    try { forced = new URLSearchParams(location.search).get('theme'); } catch (e) {}
+    if (forced === 'dark' || forced === 'light') { root.setAttribute('data-theme', forced); return; }
+    if (root.getAttribute('data-theme')) return;
+    var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    if (mq && mq.matches) root.setAttribute('data-theme', 'dark');
+    if (mq && mq.addEventListener) {
+      mq.addEventListener('change', function (e) {
+        if (!forced) root.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+      });
+    }
   })();
 </script>
