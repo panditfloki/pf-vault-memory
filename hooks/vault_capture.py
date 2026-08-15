@@ -2,7 +2,7 @@
 """
 vault_capture.py — SessionEnd hook for pf-vault-memory.
 
-The guaranteed-capture layer. Fires when any Claude Code session under WORKSPACE ends and
+The guaranteed-capture layer. Fires when any Claude Code or Codex session under WORKSPACE ends and
 writes ONE lean markdown note into the vault inbox. It does NOT synthesise — that is the
 `/ingest` step's job, run by a human. This script only guarantees nothing is lost.
 
@@ -73,6 +73,20 @@ NOISE_RE = re.compile(
 )
 WRITE_TOOLS = {"Write", "Edit", "NotebookEdit", "MultiEdit"}
 
+# Codex rollout files contain injected context as user-role messages. These are harness
+# metadata, not prompts authored by the user, and must not enter the capture.
+CODEX_CONTEXT_PREFIXES = (
+    "<recommended_plugins>",
+    "# AGENTS.md instructions",
+    "<environment_context>",
+    "<permissions instructions>",
+    "<collaboration_mode>",
+    "<apps_instructions>",
+    "<plugins_instructions>",
+    "<skill>",
+)
+PATCH_FILE_RE = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$", re.MULTILINE)
+
 
 def log_error(msg: str) -> None:
     try:
@@ -92,7 +106,15 @@ def find_transcript(session_id: str, given: str | None) -> Path | None:
     hits = glob.glob(
         str(Path.home() / ".claude" / "projects" / "*" / f"{session_id}.jsonl")
     )
-    return Path(hits[0]) if hits else None
+    if hits:
+        return Path(hits[0])
+    for root in (Path.home() / ".codex" / "sessions", Path.home() / ".codex" / "archived_sessions"):
+        if not root.is_dir():
+            continue
+        hits = glob.glob(str(root / "**" / f"*{session_id}*.jsonl"), recursive=True)
+        if hits:
+            return Path(hits[0])
+    return None
 
 
 def text_blocks(content) -> list[str]:
@@ -113,12 +135,34 @@ def clean(text: str) -> str:
     return NOISE_RE.sub("", text).strip()
 
 
+def clean_codex_user_text(text: str) -> str:
+    """Remove Codex-injected context while preserving the human request."""
+    text = clean(text)
+    if not text or text.startswith(CODEX_CONTEXT_PREFIXES):
+        return ""
+    if text.startswith("<task>"):
+        text = text[len("<task>"):].strip()
+        if text.endswith("</task>"):
+            text = text[:-len("</task>")].strip()
+    return text
+
+
+def patch_files(value) -> list[str]:
+    """Extract apply_patch targets from a Codex tool-call payload."""
+    if isinstance(value, (dict, list)):
+        value = json.dumps(value, ensure_ascii=False)
+    if not isinstance(value, str):
+        return []
+    return [match.strip() for match in PATCH_FILE_RE.findall(value) if match.strip()]
+
+
 def truncate(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[:limit].rstrip() + " …[truncated]"
 
 
 def parse_transcript(path: Path) -> dict:
     prompts, files, closing, stamps = [], [], "", []
+    harness = "claude-code"
 
     # encoding is explicit: on Windows, Python defaults to the locale codepage (cp1252) and
     # mis-decodes UTF-8 transcripts — it silently mangles any non-ASCII text (₹, é, 你好, emoji).
@@ -138,6 +182,32 @@ def parse_transcript(path: Path) -> dict:
                 stamps.append(ts)
 
             etype = e.get("type")
+            if etype in {"session_meta", "response_item", "turn_context", "world_state"}:
+                harness = "codex"
+
+            # Codex rollout JSONL stores messages under response_item.payload. Ignore
+            # event_msg copies so each human turn is captured exactly once.
+            if etype == "response_item":
+                payload = e.get("payload") or {}
+                ptype = payload.get("type")
+                if ptype == "message":
+                    role = payload.get("role")
+                    for block in payload.get("content") or []:
+                        if not isinstance(block, dict):
+                            continue
+                        btype = block.get("type")
+                        text = block.get("text", "")
+                        if role == "user" and btype in {"input_text", "text"}:
+                            if txt := clean_codex_user_text(text):
+                                prompts.append(truncate(txt, MAX_PROMPT_CHARS))
+                        elif role == "assistant" and btype in {"output_text", "text"} and text.strip():
+                            closing = text.strip()
+                elif ptype in {"custom_tool_call", "function_call"}:
+                    for fp in patch_files(payload.get("input") or payload.get("arguments")):
+                        if fp not in files:
+                            files.append(fp)
+                continue
+
             content = (e.get("message") or {}).get("content")
 
             if etype == "user" and "toolUseResult" not in e:
@@ -165,6 +235,7 @@ def parse_transcript(path: Path) -> dict:
         "closing": truncate(closing, MAX_CLOSING_CHARS),
         "started": stamps[0] if stamps else "",
         "ended": stamps[-1] if stamps else "",
+        "harness": harness,
     }
 
 
@@ -304,6 +375,7 @@ def main() -> None:
         f"project: {yaml_str(project)}",
         f"cwd: {yaml_str(str(cwd))}",
         f"session_id: {yaml_str(session_id)}",
+        f"harness: {yaml_str(t['harness'])}",
         f"started: {yaml_str(t['started'])}",
         f"ended: {yaml_str(t['ended'])}",
         f"end_reason: {yaml_str(reason)}",
@@ -314,7 +386,7 @@ def main() -> None:
         "",
         f"# Session — {project} — {now:%Y-%m-%d %H:%M}",
         "",
-        "> Auto-captured by the SessionEnd hook. Raw material for the `/ingest` sweep.",
+        f"> Auto-captured from {t['harness']} by the SessionEnd hook. Raw material for `/ingest`.",
         "> Not a wiki page. Promote what is durable, then set `status: ingested`",
         "> and `ingested_at_turns: <turns>`.",
         "",

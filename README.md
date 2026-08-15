@@ -1,8 +1,8 @@
 # pf-vault-memory
 
-![version](https://img.shields.io/github/v/tag/panditfloki/pf-vault-memory?label=version&color=b8863b) &nbsp;![license](https://img.shields.io/badge/license-MIT-1f6f6b) &nbsp;![for](https://img.shields.io/badge/for-Claude%20Code-b8863b)
+![version](https://img.shields.io/github/v/tag/panditfloki/pf-vault-memory?label=version&color=b8863b) &nbsp;![license](https://img.shields.io/badge/license-MIT-1f6f6b) &nbsp;![for](https://img.shields.io/badge/for-Claude%20Code%20%2B%20Codex-b8863b)
 
-**A persistent, cross-device second brain for Claude Code — an LLM-maintained wiki you *query*, not a context blob you preload.**
+**A persistent, cross-device second brain for Claude Code and Codex — an LLM-maintained wiki you *query*, not a context blob you preload.**
 
 <p align="center">
   <picture>
@@ -74,6 +74,10 @@ VAULT_PATH=~/second-brain bash install.sh        # macOS / Linux
 
 # 3. the one manual step it prints — add to ~/.claude/CLAUDE.md:
 #    @~/second-brain/KERNEL.md
+
+# 4. Windows Codex support (after install.ps1)
+#    ./install-codex.ps1
+#    Then open Codex, run /hooks once, trust the SessionEnd hook, and restart Codex.
 ```
 
 Then **sync the vault folder** however you like (git, Dropbox, Syncthing, Obsidian Sync, iCloud),
@@ -82,7 +86,7 @@ per-machine — that split is deliberate.
 
 ## Use
 
-- Just work. Sessions auto-capture on exit.
+- Just work. Claude Code and Codex sessions auto-capture on exit.
 - `/capture` — save a decision or analysis mid-session, in your words.
 - `/ingest` — promote the inbox into the wiki (you run this; it's never automatic).
 - `/newproject` — wire a new project folder into the vault: a working-state file + a one-line pointer, so that project's context loads automatically inside its folder.
@@ -93,7 +97,9 @@ per-machine — that split is deliberate.
 ```
 pf-vault-memory/
 ├── SKILL.md              # how Claude operates the system
-├── install.sh / .ps1     # per-device installer (idempotent)
+├── install.sh / .ps1     # Claude Code per-device installer (idempotent)
+├── install-codex.ps1     # Windows Codex skills + AGENTS.md + SessionEnd capture
+├── codex-AGENTS.md.tmpl  # rendered into the user's Codex home per device
 ├── hooks/                # vault_capture.py (SessionEnd) · vault_queue_nudge.py (SessionStart)
 ├── skills/               # capture/ · ingest/ · newproject/
 └── vault-template/       # CLAUDE.md (schema) · KERNEL.md (identity) · wiki/ scaffold
@@ -101,7 +107,7 @@ pf-vault-memory/
 
 ## Requirements
 
-Claude Code · Python 3.9+ · any file-sync tool for multi-device (optional for single-machine).
+Claude Code and/or Codex · Python 3.9+ · any file-sync tool for multi-device (optional for single-machine).
 
 ## License
 
