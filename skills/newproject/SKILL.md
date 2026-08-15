@@ -1,13 +1,14 @@
 ---
 name: newproject
-description: Wire a new (or existing) project folder into the vault memory system, so its working state lives in the synced vault and loads automatically inside that folder. Use when the user says /newproject, "add this project to memory", "set up memory for this folder", "wire this into the vault", or when they create a project folder they want remembered across sessions and devices. Also use to retrofit an existing folder that has no CLAUDE.md.
+description: Wire a new (or existing) project folder into the vault memory system, so its working state lives in the synced vault and loads automatically inside that folder — in both Claude Code and Codex. Use when the user says /newproject, "add this project to memory", "set up memory for this folder", "wire this into the vault", or when they create a project folder they want remembered across sessions and devices. Also use to retrofit an existing folder missing CLAUDE.md or AGENTS.md.
 ---
 
 # /newproject — wire a project into the vault
 
-Two files. That's the whole job. The project's **working state** goes in the vault (so it syncs
-across devices and stays editable in your notes app); the project folder gets a **one-line pointer**
-so Claude Code loads that state automatically — but only inside that folder.
+Three files. The project's **working state** goes in the vault (so it syncs across devices and
+stays editable in your notes app); the project folder gets two tiny platform adapters —
+`CLAUDE.md` for Claude Code and `AGENTS.md` for Codex — both pointing at the same state file.
+Neither adapter stores project facts itself.
 
 **Vault:** the folder at `$VAULT_PATH` (set in `~/.claude/settings.json`).
 **Schema:** `<vault>/CLAUDE.md`.
@@ -26,8 +27,9 @@ so Claude Code loads that state automatically — but only inside that folder.
    `~/work/clients/acme/` needs one more `../`. **Layouts differ; always look at the actual tree.**
    ⚠️ **A wrong depth fails SILENTLY** — the import loads nothing, with no error, forever. **Always
    `test -f` (or `Test-Path`) the resolved target before you finish.**
-4. **Check it doesn't already exist.** If `state/<name>.md` or the project `CLAUDE.md` is already there,
-   read them and *extend* — never clobber working state.
+4. **Check it doesn't already exist.** If `state/<name>.md`, the project `CLAUDE.md`, or the project
+   `AGENTS.md` is already there, read it and *extend* — never clobber working state or custom
+   project instructions.
 
 ## Write file 1 — the state, in the vault
 
@@ -84,20 +86,46 @@ Adjust `../` to the depth you counted in step 3. Nothing else goes in this file 
 Any workspace-root `CLAUDE.md` and the `KERNEL.md` are inherited automatically (Claude Code walks up
 the directory tree), so never re-paste them here.
 
+## Write file 3 — the Codex adapter, in the project folder
+
+`<project folder>/AGENTS.md`
+
+```markdown
+# <Project Name> — Codex project pointer
+
+Before working on this project:
+
+1. Read `<same relative path as above>/<vault-dirname>/state/<Project-Name>.md` for current
+   working state.
+2. Read `<relative path>/<vault-dirname>/CLAUDE.md` (or `KERNEL.md`, if your vault has one) for
+   standing rules.
+3. Read `<relative path>/<vault-dirname>/wiki/index.md`, then only the relevant wiki pages.
+4. Check the last five entries of `<relative path>/<vault-dirname>/wiki/log.md` when recency matters.
+
+The vault is the source of truth. Do not copy project state or durable knowledge into this file.
+```
+
+**Why this file exists separately from `CLAUDE.md`:** Codex officially discovers `AGENTS.md`; it
+does not automatically expand Claude Code's `@` imports. Keep this adapter explicit and short, using
+the exact same verified relative depth as `CLAUDE.md` — both point at the same target, just by
+different mechanisms.
+
 ## Then
 
-5. **Verify the import resolves.** Confirm the target file exists at the path the `@` line points to.
-   A broken import fails silently — check it, don't assume.
+5. **Verify both adapters resolve.** Confirm the state and (if present) KERNEL/index/log targets exist
+   from the project directory. A broken path fails silently — check it, don't assume.
 6. **Wiki page:** if `wiki/projects/<Project Name>.md` doesn't exist, **don't hand-write it.** Say so —
    it gets created by `/ingest` once the project has captures, per the schema.
 7. **Nothing else to register.** The SessionEnd hook already covers every folder under the workspace —
    no config change, no settings edit.
-8. **Report in three lines:** the two files written, the import path, and whether a wiki page exists yet.
+8. **Report briefly:** the three files written or preserved, the verified paths, and whether a wiki
+   page exists yet.
 
 ## Rules
 
 - Never put durable knowledge in `state/`. Never put working state in `wiki/`.
-- Never restate standing rules/identity in a project `CLAUDE.md` — they're inherited.
+- Never restate standing rules/identity in a project `CLAUDE.md` or `AGENTS.md` — they're pointers
+  and loading instructions only.
 - Dates absolute (`2026-01-09`), never "today"/"recently".
 - If the project is sensitive, follow whatever capture policy the vault's `KERNEL.md`/schema sets —
   don't invent an exclusion on your own; ask the user if it isn't already decided.
