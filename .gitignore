@@ -13,5 +13,8 @@ vault_capture.error.log
 .DS_Store
 Thumbs.db
 
-# local vault pointer — personal, never publish
-CLAUDE.md
+# local vault pointers — personal, never publish. Anchored to the repo root so the
+# shipped vault-template/CLAUDE.md is not swept up by the same rule.
+/CLAUDE.md
+/AGENTS.md
+/GEMINI.md

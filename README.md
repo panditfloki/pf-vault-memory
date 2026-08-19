@@ -89,7 +89,7 @@ per-machine — that split is deliberate.
 - Just work. Claude Code and Codex sessions auto-capture on exit.
 - `/capture` — save a decision or analysis mid-session, in your words.
 - `/ingest` — promote the inbox into the wiki (you run this; it's never automatic).
-- `/newproject` — wire a new project folder into the vault: a working-state file + a one-line pointer, so that project's context loads automatically inside its folder.
+- `/newproject` — wire a new project folder into the vault: a working-state file in the vault plus three tiny pointers in the project folder (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`), so that project's context loads automatically inside its folder in Claude Code, Codex, and Gemini/Antigravity alike.
 - Ask normally — "what did we decide about X?" — and Claude reads the map, then the page.
 
 ## Layout
